@@ -33,8 +33,4 @@ public class StatusController {
     public Map<String, String> checkStatus(@RequestParam(name = "status", required = false) String status) {
         return statusService.updateAndGetStatus(status);
     }
-
-    public boolean isServerAvailable() {
-        return false;
-    }
 }

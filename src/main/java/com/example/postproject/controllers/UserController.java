@@ -2,10 +2,10 @@ package com.example.postproject.controllers;
 
 import com.example.postproject.models.User;
 import com.example.postproject.services.UserService;
+import com.example.postproject.services.StatusService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -13,35 +13,32 @@ import java.util.Optional;
 public class UserController {
 
     private final UserService userService;
-    private final StatusController statusController;
+    private final StatusService statusService;
 
-    public UserController(UserService userService, StatusController statusController) {
+    public UserController(UserService userService, StatusService statusService) {
         this.userService = userService;
-        this.statusController = statusController;
+        this.statusService = statusService;
     }
 
-    // Создание пользователя
     @PostMapping("/create")
     public ResponseEntity<?> createUser(@RequestBody User user) {
-        if (!statusController.isServerAvailable()) {
+        if (!statusService.isServerAvailable()) {
             return ResponseEntity.status(503).body("Сервис временно недоступен. Пожалуйста, попробуйте позже.");
         }
         return ResponseEntity.ok(userService.createUser(user));
     }
 
-    // Получение всех пользователей
     @GetMapping
     public ResponseEntity<?> getAllUsers() {
-        if (!statusController.isServerAvailable()) {
+        if (!statusService.isServerAvailable()) {
             return ResponseEntity.status(503).body("Сервис временно недоступен. Пожалуйста, попробуйте позже.");
         }
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    // Получение пользователя по ID
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserById(@PathVariable Long id) {
-        if (!statusController.isServerAvailable()) {
+        if (!statusService.isServerAvailable()) {
             return ResponseEntity.status(503).body("Сервис временно недоступен. Пожалуйста, попробуйте позже.");
         }
         Optional<User> user = userService.getUserById(id);
@@ -49,19 +46,17 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // Обновление пользователя
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
-        if (!statusController.isServerAvailable()) {
+        if (!statusService.isServerAvailable()) {
             return ResponseEntity.status(503).body("Сервис временно недоступен. Пожалуйста, попробуйте позже.");
         }
         return ResponseEntity.ok(userService.updateUser(id, userDetails));
     }
 
-    // Удаление пользователя
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
-        if (!statusController.isServerAvailable()) {
+        if (!statusService.isServerAvailable()) {
             return ResponseEntity.status(503).body("Сервис временно недоступен. Пожалуйста, попробуйте позже.");
         }
         userService.deleteUser(id);

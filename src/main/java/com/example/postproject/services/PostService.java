@@ -16,29 +16,29 @@ public class PostService {
         this.postRepository = postRepository;
     }
 
-    // Создание поста
+
     public Post createPost(Post post, User user){
         post.setUser(user); // Устанавливаем пользователя для поста
         return postRepository.save(post);
     }
 
-    // Получение всех постов
+
     public List<Post> getAllPosts() {
         return postRepository.findAll();
     }
 
-    // Получение поста по ID
+
     public Optional<Post> getPostById(Long id) {
         return postRepository.findById(id);
     }
 
-    // Обновление поста
+
     public Post updatePost(Long id, Post postDetails) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
         post.setTitle(postDetails.getTitle());
         post.setText(postDetails.getText());
-        post.setUser(postDetails.getUser()); // Обновляем пользователя
+        post.setUser(postDetails.getUser());
         return postRepository.save(post);
     }
 

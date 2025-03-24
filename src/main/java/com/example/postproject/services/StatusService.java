@@ -1,6 +1,7 @@
 package com.example.postproject.services;
 
 import com.example.postproject.models.ServerStatus;
+import com.example.postproject.singleton.ServerStatusSingleton;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -12,7 +13,7 @@ public class StatusService {
     private final ServerStatus serverStatus;
 
     public StatusService() {
-        this.serverStatus = ServerStatus.getInstance();
+        this.serverStatus = ServerStatusSingleton.getInstance(); // получаем синглтон
     }
 
     public boolean isServerAvailable() {
