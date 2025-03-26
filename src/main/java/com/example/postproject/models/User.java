@@ -1,5 +1,6 @@
 package com.example.postproject.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,6 +26,7 @@ public class User {
     private String username;
 
 //каскад - взаимосвязь
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Post> posts;
+@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+@JsonIgnore // Игнорирует поле при сериализации
+private List<Post> posts;
 }

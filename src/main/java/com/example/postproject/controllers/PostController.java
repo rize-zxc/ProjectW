@@ -8,6 +8,7 @@ import com.example.postproject.services.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -68,4 +69,16 @@ public class PostController {
         postService.deletePost(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/by-user/{username}")
+    public ResponseEntity<?> getPostsByUser(@PathVariable String username) {
+        if (!statusService.isServerAvailable()) {
+            return ResponseEntity.status(503).body("Сервис временно недоступен");
+        }
+        List<Post> posts = postService.getPostsByUsername(username);
+        return ResponseEntity.ok(posts);
+    }
+
+
+
 }

@@ -1,5 +1,6 @@
 package com.example.postproject.services;
 
+import com.example.postproject.cache.SimpleCache;
 import com.example.postproject.models.User;
 import com.example.postproject.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -10,26 +11,51 @@ import java.util.Optional;
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final SimpleCache cache;
 
-    public UserService(UserRepository userRepository){
+    public UserService(UserRepository userRepository, SimpleCache cache) {
         this.userRepository = userRepository;
+        this.cache = cache;
     }
 
-
-    public User createUser(User user){
-        return userRepository.save(user);
+    private String getUserCacheKey(Long id) {
+        return "user_" + id;
     }
 
+    private String getAllUsersCacheKey() {
+        return "all_users";
+    }
+
+    public User createUser(User user) {
+        User createdUser = userRepository.save(user);
+
+        cache.remove(getAllUsersCacheKey());
+        return createdUser;
+    }
 
     public List<User> getAllUsers() {
-        return userRepository.findAll();
-    }
+        String cacheKey = getAllUsersCacheKey();
+        Optional<Object> cachedUsers = cache.get(cacheKey);
+        if (cachedUsers.isPresent()) {
+            return (List<User>) cachedUsers.get();
+        }
 
+        List<User> users = userRepository.findAll();
+        cache.put(cacheKey, users);
+        return users;
+    }
 
     public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id);
-    }
+        String cacheKey = getUserCacheKey(id);
+        Optional<Object> cachedUser = cache.get(cacheKey);
+        if (cachedUser.isPresent()) {
+            return Optional.of((User) cachedUser.get());
+        }
 
+        Optional<User> user = userRepository.findById(id);
+        user.ifPresent(u -> cache.put(cacheKey, u));
+        return user;
+    }
 
     public User updateUser(Long id, User userDetails) {
         User user = userRepository.findById(id)
@@ -37,11 +63,16 @@ public class UserService {
         user.setEmail(userDetails.getEmail());
         user.setPassword(userDetails.getPassword());
         user.setUsername(userDetails.getUsername());
-        return userRepository.save(user);
-    }
 
+        User updatedUser = userRepository.save(user);
+        cache.put(getUserCacheKey(id), updatedUser);
+        cache.remove(getAllUsersCacheKey());
+        return updatedUser;
+    }
 
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
+        cache.remove(getUserCacheKey(id));
+        cache.remove(getAllUsersCacheKey());
     }
 }
