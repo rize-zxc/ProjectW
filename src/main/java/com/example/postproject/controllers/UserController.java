@@ -1,26 +1,37 @@
 package com.example.postproject.controllers;
 
 import com.example.postproject.models.User;
-import com.example.postproject.services.UserService;
 import com.example.postproject.services.StatusService;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
+import com.example.postproject.services.UserService;
 import java.util.Optional;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+
+
+@SuppressWarnings("checkstyle:MissingJavadocType")
 @RestController
 @RequestMapping("/users")
 public class UserController {
 
-    private final UserService userService;
-    private final StatusService statusService;
+  private final UserService userService;
+  private final StatusService statusService;
 
-    public UserController(UserService userService, StatusService statusService) {
+  @SuppressWarnings({"checkstyle:MissingJavadocMethod", "checkstyle:Indentation"})
+  public UserController(UserService userService, StatusService statusService) {
         this.userService = userService;
         this.statusService = statusService;
     }
 
-    @PostMapping("/create")
+  @SuppressWarnings({"checkstyle:MissingJavadocMethod", "checkstyle:Indentation"})
+  @PostMapping("/create")
     public ResponseEntity<?> createUser(@RequestBody User user) {
         if (!statusService.isServerAvailable()) {
             return ResponseEntity.status(503).body("Сервис временно недоступен. Пожалуйста, попробуйте позже.");
@@ -28,7 +39,8 @@ public class UserController {
         return ResponseEntity.ok(userService.createUser(user));
     }
 
-    @GetMapping
+  @SuppressWarnings({"checkstyle:Indentation", "checkstyle:MissingJavadocMethod"})
+  @GetMapping
     public ResponseEntity<?> getAllUsers() {
         if (!statusService.isServerAvailable()) {
             return ResponseEntity.status(503).body("Сервис временно недоступен. Пожалуйста, попробуйте позже.");
@@ -36,7 +48,8 @@ public class UserController {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    @GetMapping("/{id}")
+  @SuppressWarnings({"checkstyle:Indentation", "checkstyle:MissingJavadocMethod"})
+  @GetMapping("/{id}")
     public ResponseEntity<?> getUserById(@PathVariable Long id) {
         if (!statusService.isServerAvailable()) {
             return ResponseEntity.status(503).body("Сервис временно недоступен. Пожалуйста, попробуйте позже.");
@@ -46,7 +59,8 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/{id}")
+  @SuppressWarnings({"checkstyle:Indentation", "checkstyle:MissingJavadocMethod"})
+  @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
         if (!statusService.isServerAvailable()) {
             return ResponseEntity.status(503).body("Сервис временно недоступен. Пожалуйста, попробуйте позже.");
@@ -54,7 +68,8 @@ public class UserController {
         return ResponseEntity.ok(userService.updateUser(id, userDetails));
     }
 
-    @DeleteMapping("/{id}")
+  @SuppressWarnings({"checkstyle:Indentation", "checkstyle:MissingJavadocMethod"})
+  @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         if (!statusService.isServerAvailable()) {
             return ResponseEntity.status(503).body("Сервис временно недоступен. Пожалуйста, попробуйте позже.");

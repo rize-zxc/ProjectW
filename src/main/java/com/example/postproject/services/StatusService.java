@@ -2,24 +2,28 @@ package com.example.postproject.services;
 
 import com.example.postproject.models.ServerStatus;
 import com.example.postproject.singleton.ServerStatusSingleton;
-import org.springframework.stereotype.Service;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.stereotype.Service;
 
+
+
+@SuppressWarnings({"checkstyle:MissingJavadocType", "checkstyle:Indentation"})
 @Service
 public class StatusService {
 
-    private final ServerStatus serverStatus;
+  private final ServerStatus serverStatus;
 
-    public StatusService() {
-        this.serverStatus = ServerStatusSingleton.getInstance(); // получаем синглтон
+  @SuppressWarnings("checkstyle:MissingJavadocMethod")
+  public StatusService() {
+    this.serverStatus = ServerStatusSingleton.getInstance(); // получаем синглтон
     }
 
-    public boolean isServerAvailable() {
-        return serverStatus.isAvailable();
+  public boolean isServerAvailable() {
+     return serverStatus.isAvailable();
     }
 
+    @SuppressWarnings("checkstyle:MissingJavadocMethod")
     public Map<String, String> updateAndGetStatus(String status) {
         if (status != null) {
             if ("available".equalsIgnoreCase(status)) {

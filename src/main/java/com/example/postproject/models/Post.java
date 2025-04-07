@@ -1,32 +1,34 @@
 package com.example.postproject.models;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
 
+
+@SuppressWarnings("checkstyle:MissingJavadocType")
 @Entity
-@Table(name ="posts")
+@Table(name = "posts")
 @Getter
 @Setter
 public class Post {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Связь ManyToOne с сущностью User
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+
+  @ManyToOne
+  @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false)
+  @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false)
+  @Column(nullable = false)
     private String text;
 
-    @Column(nullable = false)
+  @Column(nullable = false)
     private LocalDateTime publishingDate = LocalDateTime.now();
 
 

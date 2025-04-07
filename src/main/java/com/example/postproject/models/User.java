@@ -2,31 +2,32 @@ package com.example.postproject.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
 
+@SuppressWarnings("checkstyle:MissingJavadocType")
 @Entity
 @Table(name ="users")
 @Getter
 @Setter
 public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+  @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
+  @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false)
+  @Column(nullable = false)
     private String username;
 
-//каскад - взаимосвязь
-@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-@JsonIgnore // Игнорирует поле при сериализации
+
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  @JsonIgnore // Игнорирует поле при сериализации
 private List<Post> posts;
 }

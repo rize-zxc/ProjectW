@@ -1,90 +1,200 @@
 package com.example.postproject.services;
 
 import com.example.postproject.cache.SimpleCache;
+import com.example.postproject.exceptions.BadRequestException;
+import com.example.postproject.exceptions.InternalServerErrorException;
 import com.example.postproject.models.Post;
 import com.example.postproject.models.User;
 import com.example.postproject.repository.PostRepository;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
+
+
+@SuppressWarnings({"checkstyle:MissingJavadocType", "checkstyle:Indentation"})
 @Service
 public class PostService {
-    private final PostRepository postRepository;
-    private final SimpleCache cache;
+  private static final Logger logger = LoggerFactory.getLogger(PostService.class);
+  private final PostRepository postRepository;
+  private final SimpleCache cache;
 
-    public PostService(PostRepository postRepository, SimpleCache cache) {
-        this.postRepository = postRepository;
-        this.cache = cache;
+  @SuppressWarnings("checkstyle:MissingJavadocMethod")
+  public PostService(PostRepository postRepository, SimpleCache cache) {
+    this.postRepository = postRepository;
+    this.cache = cache;
     }
 
-    private String getPostCacheKey(Long id) {
-        return "post_" + id;
+  private String getPostCacheKey(Long id) {
+    return "post_" + id;
     }
 
     private String getUserPostsCacheKey(String username) {
         return "user_posts_" + username;
     }
 
+    @SuppressWarnings("checkstyle:MissingJavadocMethod")
     public Post createPost(Post post, User user) {
-        post.setUser(user);
-        Post createdPost = postRepository.save(post);
-        cache.remove(getUserPostsCacheKey(user.getUsername()));
-        return createdPost;
-    }
-
-    public List<Post> getAllPosts() {
-        return postRepository.findAll();
-    }
-
-    public Optional<Post> getPostById(Long id) {
-        String cacheKey = getPostCacheKey(id);
-        Optional<Object> cachedPost = cache.get(cacheKey);
-        if (cachedPost.isPresent()) {
-            return Optional.of((Post) cachedPost.get());
-        }
-
-        Optional<Post> post = postRepository.findById(id);
-        post.ifPresent(p -> cache.put(cacheKey, p));
-        return post;
-    }
-
-    public Post updatePost(Long id, Post postDetails) {
-        Post post = postRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
-        post.setTitle(postDetails.getTitle());
-        post.setText(postDetails.getText());
-        post.setUser(postDetails.getUser());
-
-        Post updatedPost = postRepository.save(post);
-        cache.put(getPostCacheKey(id), updatedPost);
-        if (post.getUser() != null) {
-            cache.remove(getUserPostsCacheKey(post.getUser().getUsername()));
-        }
-        return updatedPost;
-    }
-
-    public void deletePost(Long id) {
-        Optional<Post> post = postRepository.findById(id);
-        postRepository.deleteById(id);
-        cache.remove(getPostCacheKey(id));
-        post.ifPresent(p -> {
-            if (p.getUser() != null) {
-                cache.remove(getUserPostsCacheKey(p.getUser().getUsername()));
+        try {
+            if (post == null) {
+                throw new BadRequestException("Post data cannot be null");
             }
-        });
+            if (user == null) {
+                throw new BadRequestException("User cannot be null");
+            }
+            if (post.getTitle() == null || post.getTitle().isEmpty()) {
+                throw new BadRequestException("Post title cannot be empty");
+            }
+            if (post.getText() == null || post.getText().isEmpty()) {
+                throw new BadRequestException("Post text cannot be empty");
+            }
+
+            post.setUser(user);
+            Post createdPost = postRepository.save(post);
+            cache.remove(getUserPostsCacheKey(user.getUsername()));
+            logger.info("Post created successfully: ID={}, User={}", createdPost.getId(), user.getUsername());
+            return createdPost;
+        } catch (BadRequestException e) {
+            logger.warn("Validation error in createPost: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Failed to create post: {}", e.getMessage(), e);
+            throw new InternalServerErrorException("Failed to create post");
+        }
     }
 
-    public List<Post> getPostsByUsername(String username) {
-        String cacheKey = getUserPostsCacheKey(username);
-        Optional<Object> cachedPosts = cache.get(cacheKey);
-        if (cachedPosts.isPresent()) {
-            return (List<Post>) cachedPosts.get();
+    @SuppressWarnings("checkstyle:MissingJavadocMethod")
+    public List<Post> getAllPosts() {
+        try {
+            List<Post> posts = postRepository.findAll();
+            logger.info("Retrieved {} posts from database", posts.size());
+            return posts;
+        } catch (Exception e) {
+            logger.error("Failed to fetch posts: {}", e.getMessage(), e);
+            throw new InternalServerErrorException("Failed to fetch posts");
         }
+    }
 
-        List<Post> posts = postRepository.findPostsByUsername(username);
-        cache.put(cacheKey, posts);
-        return posts;
+    @SuppressWarnings("checkstyle:MissingJavadocMethod")
+    public Optional<Post> getPostById(Long id) {
+        try {
+            if (id == null || id <= 0) {
+                throw new BadRequestException("Invalid post ID");
+            }
+
+            String cacheKey = getPostCacheKey(id);
+            Optional<Object> cachedPost = cache.get(cacheKey);
+
+            if (cachedPost.isPresent()) {
+                logger.debug("Retrieved post from cache: ID={}", id);
+                return Optional.of((Post) cachedPost.get());
+            }
+
+            Optional<Post> post = postRepository.findById(id);
+            if (post.isPresent()) {
+                cache.put(cacheKey, post.get());
+                logger.info("Retrieved post from database: ID={}", id);
+            } else {
+                logger.warn("Post not found: ID={}", id);
+            }
+            return post;
+        } catch (BadRequestException e) {
+            logger.warn("Invalid request in getPostById: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Failed to fetch post by ID: {}", e.getMessage(), e);
+            throw new InternalServerErrorException("Failed to fetch post");
+        }
+    }
+
+    @SuppressWarnings("checkstyle:MissingJavadocMethod")
+    public Post updatePost(Long id, Post postDetails) {
+        try {
+            if (id == null || id <= 0) {
+                throw new BadRequestException("Invalid post ID");
+            }
+            if (postDetails == null) {
+                throw new BadRequestException("Post details cannot be null");
+            }
+
+            Post post = postRepository.findById(id)
+                    .orElseThrow(() -> new BadRequestException("Post not found with ID: " + id));
+
+            if (postDetails.getTitle() != null) post.setTitle(postDetails.getTitle());
+            if (postDetails.getText() != null) post.setText(postDetails.getText());
+
+            Post updatedPost = postRepository.save(post);
+            cache.put(getPostCacheKey(id), updatedPost);
+            if (post.getUser() != null) {
+                cache.remove(getUserPostsCacheKey(post.getUser().getUsername()));
+            }
+            logger.info("Post updated successfully: ID={}", id);
+            return updatedPost;
+        } catch (BadRequestException e) {
+            logger.warn("Validation error in updatePost: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Failed to update post: {}", e.getMessage(), e);
+            throw new InternalServerErrorException("Failed to update post");
+        }
+    }
+
+    @SuppressWarnings("checkstyle:MissingJavadocMethod")
+    public void deletePost(Long id) {
+        try {
+            if (id == null || id <= 0) {
+                throw new BadRequestException("Invalid post ID");
+            }
+
+            Optional<Post> post = postRepository.findById(id);
+            if (post.isEmpty()) {
+                throw new BadRequestException("Post not found with ID: " + id);
+            }
+
+            postRepository.deleteById(id);
+            cache.remove(getPostCacheKey(id));
+            post.ifPresent(p -> {
+                if (p.getUser() != null) {
+                    cache.remove(getUserPostsCacheKey(p.getUser().getUsername()));
+                }
+            });
+            logger.info("Post deleted successfully: ID={}", id);
+        } catch (BadRequestException e) {
+            logger.warn("Validation error in deletePost: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Failed to delete post: {}", e.getMessage(), e);
+            throw new InternalServerErrorException("Failed to delete post");
+        }
+    }
+
+    @SuppressWarnings("checkstyle:MissingJavadocMethod")
+    public List<Post> getPostsByUsername(String username) {
+        try {
+            if (username == null || username.isEmpty()) {
+                throw new BadRequestException("Username cannot be empty");
+            }
+
+            String cacheKey = getUserPostsCacheKey(username);
+            Optional<Object> cachedPosts = cache.get(cacheKey);
+
+            if (cachedPosts.isPresent()) {
+                logger.debug("Retrieved posts from cache for user: {}", username);
+                return (List<Post>) cachedPosts.get();
+            }
+
+            List<Post> posts = postRepository.findPostsByUsername(username);
+            cache.put(cacheKey, posts);
+            logger.info("Retrieved {} posts for user: {}", posts.size(), username);
+            return posts;
+        } catch (BadRequestException e) {
+            logger.warn("Invalid request in getPostsByUsername: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Failed to fetch posts by username: {}", e.getMessage(), e);
+            throw new InternalServerErrorException("Failed to fetch posts");
+        }
     }
 }

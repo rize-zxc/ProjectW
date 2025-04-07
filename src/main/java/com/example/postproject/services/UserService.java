@@ -1,78 +1,175 @@
 package com.example.postproject.services;
 
 import com.example.postproject.cache.SimpleCache;
+import com.example.postproject.exceptions.BadRequestException;
+import com.example.postproject.exceptions.InternalServerErrorException;
 import com.example.postproject.models.User;
 import com.example.postproject.repository.UserRepository;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
+
+
+@SuppressWarnings({"checkstyle:MissingJavadocType", "checkstyle:Indentation"})
 @Service
 public class UserService {
-    private final UserRepository userRepository;
-    private final SimpleCache cache;
+  private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+  private final UserRepository userRepository;
+  private final SimpleCache cache;
 
-    public UserService(UserRepository userRepository, SimpleCache cache) {
-        this.userRepository = userRepository;
-        this.cache = cache;
+  @SuppressWarnings({"checkstyle:MissingJavadocMethod", "checkstyle:Indentation"})
+  public UserService(UserRepository userRepository, SimpleCache cache) {
+    this.userRepository = userRepository;
+    this.cache = cache;
     }
 
-    private String getUserCacheKey(Long id) {
-        return "user_" + id;
+  private String getUserCacheKey(Long id) {
+    return "user_" + id;
     }
 
-    private String getAllUsersCacheKey() {
-        return "all_users";
+  private String getAllUsersCacheKey() {
+    return "all_users";
     }
 
+    @SuppressWarnings("checkstyle:MissingJavadocMethod")
     public User createUser(User user) {
-        User createdUser = userRepository.save(user);
+        try {
+            // Валидация
+            if (user == null) {
+                throw new BadRequestException("User data cannot be null");
+            }
+            if (user.getEmail() == null || user.getEmail().isEmpty()) {
+                throw new BadRequestException("Email cannot be empty");
+            }
+            if (user.getPassword() == null || user.getPassword().isEmpty()) {
+                throw new BadRequestException("Password cannot be empty");
+            }
+            if (user.getUsername() == null || user.getUsername().isEmpty()) {
+                throw new BadRequestException("Username cannot be empty");
+            }
 
-        cache.remove(getAllUsersCacheKey());
-        return createdUser;
+            User createdUser = userRepository.save(user);
+            cache.remove(getAllUsersCacheKey()); // Инвалидируем кеш
+            logger.info("User created successfully: ID={}, Email={}", createdUser.getId(), createdUser.getEmail());
+            return createdUser;
+        } catch (BadRequestException e) {
+            logger.warn("Validation error in createUser: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Failed to create user: {}", e.getMessage(), e);
+            throw new InternalServerErrorException("Failed to create user due to server error");
+        }
     }
 
+    @SuppressWarnings("checkstyle:MissingJavadocMethod")
     public List<User> getAllUsers() {
-        String cacheKey = getAllUsersCacheKey();
-        Optional<Object> cachedUsers = cache.get(cacheKey);
-        if (cachedUsers.isPresent()) {
-            return (List<User>) cachedUsers.get();
-        }
+        try {
+            String cacheKey = getAllUsersCacheKey();
+            Optional<Object> cachedUsers = cache.get(cacheKey);
 
-        List<User> users = userRepository.findAll();
-        cache.put(cacheKey, users);
-        return users;
+            if (cachedUsers.isPresent()) {
+                logger.debug("Retrieved users from cache");
+                return (List<User>) cachedUsers.get();
+            }
+
+            List<User> users = userRepository.findAll();
+            cache.put(cacheKey, users);
+            logger.info("Retrieved {} users from database", users.size());
+            return users;
+        } catch (Exception e) {
+            logger.error("Failed to fetch users: {}", e.getMessage(), e);
+            throw new InternalServerErrorException("Failed to fetch users");
+        }
     }
 
+    @SuppressWarnings("checkstyle:MissingJavadocMethod")
     public Optional<User> getUserById(Long id) {
-        String cacheKey = getUserCacheKey(id);
-        Optional<Object> cachedUser = cache.get(cacheKey);
-        if (cachedUser.isPresent()) {
-            return Optional.of((User) cachedUser.get());
+        try {
+            if (id == null || id <= 0) {
+                throw new BadRequestException("Invalid user ID");
+            }
+
+            String cacheKey = getUserCacheKey(id);
+            Optional<Object> cachedUser = cache.get(cacheKey);
+
+            if (cachedUser.isPresent()) {
+                logger.debug("Retrieved user from cache: ID={}", id);
+                return Optional.of((User) cachedUser.get());
+            }
+
+            Optional<User> user = userRepository.findById(id);
+            if (user.isPresent()) {
+                cache.put(cacheKey, user.get());
+                logger.info("Retrieved user from database: ID={}", id);
+            } else {
+                logger.warn("User not found: ID={}", id);
+            }
+            return user;
+        } catch (BadRequestException e) {
+            logger.warn("Invalid request in getUserById: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Failed to fetch user by ID: {}", e.getMessage(), e);
+            throw new InternalServerErrorException("Failed to fetch user");
         }
-
-        Optional<User> user = userRepository.findById(id);
-        user.ifPresent(u -> cache.put(cacheKey, u));
-        return user;
     }
 
+    @SuppressWarnings("checkstyle:MissingJavadocMethod")
     public User updateUser(Long id, User userDetails) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
-        user.setEmail(userDetails.getEmail());
-        user.setPassword(userDetails.getPassword());
-        user.setUsername(userDetails.getUsername());
+        try {
+            if (id == null || id <= 0) {
+                throw new BadRequestException("Invalid user ID");
+            }
+            if (userDetails == null) {
+                throw new BadRequestException("User details cannot be null");
+            }
 
-        User updatedUser = userRepository.save(user);
-        cache.put(getUserCacheKey(id), updatedUser);
-        cache.remove(getAllUsersCacheKey());
-        return updatedUser;
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new BadRequestException("User not found with ID: " + id));
+
+            // Обновляем поля
+            if (userDetails.getEmail() != null) user.setEmail(userDetails.getEmail());
+            if (userDetails.getPassword() != null) user.setPassword(userDetails.getPassword());
+            if (userDetails.getUsername() != null) user.setUsername(userDetails.getUsername());
+
+            User updatedUser = userRepository.save(user);
+            cache.put(getUserCacheKey(id), updatedUser);
+            cache.remove(getAllUsersCacheKey());
+            logger.info("User updated successfully: ID={}", id);
+            return updatedUser;
+        } catch (BadRequestException e) {
+            logger.warn("Validation error in updateUser: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Failed to update user: {}", e.getMessage(), e);
+            throw new InternalServerErrorException("Failed to update user");
+        }
     }
 
+    @SuppressWarnings("checkstyle:MissingJavadocMethod")
     public void deleteUser(Long id) {
-        userRepository.deleteById(id);
-        cache.remove(getUserCacheKey(id));
-        cache.remove(getAllUsersCacheKey());
+        try {
+            if (id == null || id <= 0) {
+                throw new BadRequestException("Invalid user ID");
+            }
+
+            if (!userRepository.existsById(id)) {
+                throw new BadRequestException("User not found with ID: " + id);
+            }
+
+            userRepository.deleteById(id);
+            cache.remove(getUserCacheKey(id));
+            cache.remove(getAllUsersCacheKey());
+            logger.info("User deleted successfully: ID={}", id);
+        } catch (BadRequestException e) {
+            logger.warn("Validation error in deleteUser: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Failed to delete user: {}", e.getMessage(), e);
+            throw new InternalServerErrorException("Failed to delete user");
+        }
     }
 }

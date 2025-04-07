@@ -2,6 +2,8 @@ plugins {
 	java
 	id("org.springframework.boot") version "3.4.3"
 	id("io.spring.dependency-management") version "1.1.7"
+	id("checkstyle")
+
 }
 
 group = "com.example"
@@ -11,6 +13,14 @@ java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(21)
 	}
+}
+
+checkstyle {
+	toolVersion = "10.12.5"  // Актуальная версия Checkstyle
+	configFile = file("config/checkstyle/my-custom-checkstyle.xml")  // Путь к вашему файлу
+	isIgnoreFailures = false  // Остановка сборки при ошибках
+	maxErrors = 0             // Максимальное количество ошибок (0 = любая ошибка запрещена)
+	maxWarnings = 0           // Максимальное количество предупреждений
 }
 
 repositories {
@@ -28,6 +38,8 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
+
+
 }
 
 tasks.withType<Test> {
