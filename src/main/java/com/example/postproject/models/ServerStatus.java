@@ -1,10 +1,10 @@
 package com.example.postproject.models;
 
-@SuppressWarnings({"checkstyle:MissingJavadocType", "checkstyle:Indentation"})
+/**class of ServerStatus.*/
 public class ServerStatus {
   private boolean available;
 
-  @SuppressWarnings("checkstyle:MissingJavadocMethod")
+    /**constructor of ServerStatus.*/
   public ServerStatus() {
         this.available = true;
     }

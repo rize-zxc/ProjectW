@@ -16,11 +16,11 @@ java {
 }
 
 checkstyle {
-	toolVersion = "10.12.5"  // Актуальная версия Checkstyle
-	configFile = file("config/checkstyle/my-custom-checkstyle.xml")  // Путь к вашему файлу
-	isIgnoreFailures = false  // Остановка сборки при ошибках
-	maxErrors = 0             // Максимальное количество ошибок (0 = любая ошибка запрещена)
-	maxWarnings = 0           // Максимальное количество предупреждений
+	toolVersion = "10.12.5"
+	configFile = file("my_checks.xml")
+	isIgnoreFailures = false
+	maxErrors = 0
+	maxWarnings = 0
 }
 
 repositories {
@@ -38,6 +38,8 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
+	implementation ("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
+
 
 
 }

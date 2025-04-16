@@ -10,11 +10,13 @@
     <property name="severity" value="${org.checkstyle.google.severity}" default="warning"/>
 
     <property name="fileExtensions" value="java, properties, xml"/>
+
     <module name="BeforeExecutionExclusionFileFilter">
         <property name="fileNamePattern" value="module\-info\.java$"/>
     </module>
 
     <module name="SuppressWarningsFilter"/>
+
 
     <module name="SuppressionFilter">
         <property name="file" value="${org.checkstyle.google.suppressionfilter.config}"
@@ -22,7 +24,7 @@
         <property name="optional" value="true"/>
     </module>
 
-    <!-- https://checkstyle.org/filters/suppresswithnearbytextfilter.html -->
+
     <module name="SuppressWithNearbyTextFilter">
         <property name="nearbyTextPattern"
                   value="CHECKSTYLE.SUPPRESS\: (\w+) for ([+-]\d+) lines"/>
@@ -30,17 +32,16 @@
         <property name="lineRange" value="$2"/>
     </module>
 
-    <!-- Checks for whitespace                               -->
-    <!-- See http://checkstyle.org/checks/whitespace/index.html -->
+
     <module name="FileTabCharacter">
         <property name="eachLine" value="true"/>
     </module>
 
     <module name="LineLength">
         <property name="fileExtensions" value="java"/>
-        <property name="max" value="100"/>
+        <property name="max" value="150"/>
         <property name="ignorePattern"
-                  value="^package.*|^import.*|href\s*=\s*&quot;[^&quot;]*&quot;|https://|ftp://"/>
+                  value="^package.*|^import.*|href\s*=\s*&quot;[^&quot;]*&quot;|http://|https://|ftp://"/>
     </module>
 
     <module name="TreeWalker">
@@ -82,7 +83,7 @@
                       value="LITERAL_CASE, LITERAL_DEFAULT"/>
         </module>
         <module name="SuppressionXpathSingleFilter">
-            <!-- LITERAL_CASE, LITERAL_DEFAULT are reused in SWITCH_RULE  -->
+
             <property name="id" value="LeftCurlyNl"/>
             <property name="query" value="//SWITCH_RULE/SLIST"/>
         </module>
@@ -101,7 +102,7 @@
                     COMPACT_CTOR_DEF, LITERAL_SWITCH, LITERAL_CASE, LITERAL_FINALLY"/>
         </module>
         <module name="SuppressionXpathSingleFilter">
-            <!-- suppression is required till https://github.com/checkstyle/checkstyle/issues/7541 -->
+
             <property name="id" value="RightCurlyAlone"/>
             <property name="query" value="//RCURLY[parent::SLIST[count(./*)=1]
                                      or preceding-sibling::*[last()][self::LCURLY]]"/>
@@ -174,13 +175,13 @@
             <property name="option" value="EOL"/>
         </module>
         <module name="SeparatorWrap">
-            <!-- ELLIPSIS is EOL until https://github.com/google/styleguide/issues/259 -->
+
             <property name="id" value="SeparatorWrapEllipsis"/>
             <property name="tokens" value="ELLIPSIS"/>
             <property name="option" value="EOL"/>
         </module>
         <module name="SeparatorWrap">
-            <!-- ARRAY_DECLARATOR is EOL until https://github.com/google/styleguide/issues/258 -->
+
             <property name="id" value="SeparatorWrapArrayDeclarator"/>
             <property name="tokens" value="ARRAY_DECLARATOR"/>
             <property name="option" value="EOL"/>
@@ -268,15 +269,14 @@
                      value="GenericWhitespace ''{0}'' is not preceded with whitespace."/>
         </module>
         <module name="Indentation">
-            <property name="basicOffset" value="2"/>
+            <property name="basicOffset" value="4"/>
             <property name="braceAdjustment" value="2"/>
             <property name="caseIndent" value="2"/>
             <property name="throwsIndent" value="4"/>
             <property name="lineWrappingIndentation" value="4"/>
             <property name="arrayInitIndent" value="2"/>
         </module>
-        <!-- Suppression for block code until we find a way to detect them properly
-             until https://github.com/checkstyle/checkstyle/issues/15769 -->
+
         <module name="SuppressionXpathSingleFilter">
             <property name="checks" value="Indentation"/>
             <property name="query" value="//SLIST[not(parent::CASE_GROUP)]/SLIST
@@ -401,7 +401,7 @@
         <module name="CommentsIndentation">
             <property name="tokens" value="SINGLE_LINE_COMMENT, BLOCK_COMMENT_BEGIN"/>
         </module>
-        <!-- https://checkstyle.org/filters/suppressionxpathfilter.html -->
+
         <module name="SuppressionXpathFilter">
             <property name="file" value="${org.checkstyle.google.suppressionxpathfilter.config}"
                       default="checkstyle-xpath-suppressions.xml" />
@@ -415,7 +415,9 @@
         </module>
         <module name="SuppressWithNearbyCommentFilter">
             <property name="commentFormat" value="CHECKSTYLE.SUPPRESS\: ([\w\|]+)"/>
+
             <property name="checkFormat" value="$1"/>
+
             <property name="influenceFormat" value="1"/>
         </module>
     </module>

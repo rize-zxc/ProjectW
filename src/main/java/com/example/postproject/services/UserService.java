@@ -13,31 +13,31 @@ import org.springframework.stereotype.Service;
 
 
 
-@SuppressWarnings({"checkstyle:MissingJavadocType", "checkstyle:Indentation"})
+/**user service realization.*/
 @Service
 public class UserService {
-  private static final Logger logger = LoggerFactory.getLogger(UserService.class);
-  private final UserRepository userRepository;
-  private final SimpleCache cache;
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+    private final UserRepository userRepository;
+    private final SimpleCache cache;
 
-  @SuppressWarnings({"checkstyle:MissingJavadocMethod", "checkstyle:Indentation"})
-  public UserService(UserRepository userRepository, SimpleCache cache) {
-    this.userRepository = userRepository;
-    this.cache = cache;
+    /**cache for User.*/
+    public UserService(UserRepository userRepository, SimpleCache cache) {
+        this.userRepository = userRepository;
+        this.cache = cache;
     }
 
-  private String getUserCacheKey(Long id) {
-    return "user_" + id;
+    private String getUserCacheKey(Long id) {
+        return "user_" + id;
     }
 
-  private String getAllUsersCacheKey() {
-    return "all_users";
+    private String getAllUsersCacheKey() {
+        return "all_users";
     }
 
-    @SuppressWarnings("checkstyle:MissingJavadocMethod")
+    /**createUser method.*/
     public User createUser(User user) {
         try {
-            // Валидация
+
             if (user == null) {
                 throw new BadRequestException("User data cannot be null");
             }
@@ -52,7 +52,7 @@ public class UserService {
             }
 
             User createdUser = userRepository.save(user);
-            cache.remove(getAllUsersCacheKey()); // Инвалидируем кеш
+            cache.remove(getAllUsersCacheKey());
             logger.info("User created successfully: ID={}, Email={}", createdUser.getId(), createdUser.getEmail());
             return createdUser;
         } catch (BadRequestException e) {
@@ -64,7 +64,7 @@ public class UserService {
         }
     }
 
-    @SuppressWarnings("checkstyle:MissingJavadocMethod")
+    /**getAllUsers method.*/
     public List<User> getAllUsers() {
         try {
             String cacheKey = getAllUsersCacheKey();
@@ -85,7 +85,7 @@ public class UserService {
         }
     }
 
-    @SuppressWarnings("checkstyle:MissingJavadocMethod")
+    /**getUserById method.*/
     public Optional<User> getUserById(Long id) {
         try {
             if (id == null || id <= 0) {
@@ -117,7 +117,7 @@ public class UserService {
         }
     }
 
-    @SuppressWarnings("checkstyle:MissingJavadocMethod")
+    /**updateUser method.*/
     public User updateUser(Long id, User userDetails) {
         try {
             if (id == null || id <= 0) {
@@ -130,10 +130,16 @@ public class UserService {
             User user = userRepository.findById(id)
                     .orElseThrow(() -> new BadRequestException("User not found with ID: " + id));
 
-            // Обновляем поля
-            if (userDetails.getEmail() != null) user.setEmail(userDetails.getEmail());
-            if (userDetails.getPassword() != null) user.setPassword(userDetails.getPassword());
-            if (userDetails.getUsername() != null) user.setUsername(userDetails.getUsername());
+
+            if (userDetails.getEmail() != null) {
+                user.setEmail(userDetails.getEmail());
+            }
+            if (userDetails.getPassword() != null) {
+                user.setPassword(userDetails.getPassword());
+            }
+            if (userDetails.getUsername() != null) {
+                user.setUsername(userDetails.getUsername());
+            }
 
             User updatedUser = userRepository.save(user);
             cache.put(getUserCacheKey(id), updatedUser);
@@ -149,7 +155,7 @@ public class UserService {
         }
     }
 
-    @SuppressWarnings("checkstyle:MissingJavadocMethod")
+    /**deleteUser method.*/
     public void deleteUser(Long id) {
         try {
             if (id == null || id <= 0) {

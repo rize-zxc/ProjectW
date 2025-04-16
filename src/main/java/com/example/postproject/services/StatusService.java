@@ -8,22 +8,22 @@ import org.springframework.stereotype.Service;
 
 
 
-@SuppressWarnings({"checkstyle:MissingJavadocType", "checkstyle:Indentation"})
+/**class of StatusService.*/
 @Service
 public class StatusService {
 
-  private final ServerStatus serverStatus;
+    private final ServerStatus serverStatus;
 
-  @SuppressWarnings("checkstyle:MissingJavadocMethod")
-  public StatusService() {
-    this.serverStatus = ServerStatusSingleton.getInstance(); // получаем синглтон
+    /**constructor of StatusService.*/
+    public StatusService() {
+        this.serverStatus = ServerStatusSingleton.getInstance(); // получаем синглтон
     }
 
-  public boolean isServerAvailable() {
-     return serverStatus.isAvailable();
+    public boolean isServerAvailable() {
+        return serverStatus.isAvailable();
     }
 
-    @SuppressWarnings("checkstyle:MissingJavadocMethod")
+    /**updateGetStatus method.*/
     public Map<String, String> updateAndGetStatus(String status) {
         if (status != null) {
             if ("available".equalsIgnoreCase(status)) {

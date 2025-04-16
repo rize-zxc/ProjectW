@@ -14,28 +14,28 @@ import org.springframework.stereotype.Service;
 
 
 
-@SuppressWarnings({"checkstyle:MissingJavadocType", "checkstyle:Indentation"})
+/**class of PostService.*/
 @Service
 public class PostService {
-  private static final Logger logger = LoggerFactory.getLogger(PostService.class);
-  private final PostRepository postRepository;
-  private final SimpleCache cache;
+    private static final Logger logger = LoggerFactory.getLogger(PostService.class);
+    private final PostRepository postRepository;
+    private final SimpleCache cache;
 
-  @SuppressWarnings("checkstyle:MissingJavadocMethod")
-  public PostService(PostRepository postRepository, SimpleCache cache) {
-    this.postRepository = postRepository;
-    this.cache = cache;
+    /**cache.*/
+    public PostService(PostRepository postRepository, SimpleCache cache) {
+        this.postRepository = postRepository;
+        this.cache = cache;
     }
 
-  private String getPostCacheKey(Long id) {
-    return "post_" + id;
+    private String getPostCacheKey(Long id) {
+        return "post_" + id;
     }
 
     private String getUserPostsCacheKey(String username) {
         return "user_posts_" + username;
     }
 
-    @SuppressWarnings("checkstyle:MissingJavadocMethod")
+    /**class for createPost.*/
     public Post createPost(Post post, User user) {
         try {
             if (post == null) {
@@ -65,7 +65,7 @@ public class PostService {
         }
     }
 
-    @SuppressWarnings("checkstyle:MissingJavadocMethod")
+    /**getAllPosts.*/
     public List<Post> getAllPosts() {
         try {
             List<Post> posts = postRepository.findAll();
@@ -77,7 +77,7 @@ public class PostService {
         }
     }
 
-    @SuppressWarnings("checkstyle:MissingJavadocMethod")
+    /**get post by ID.*/
     public Optional<Post> getPostById(Long id) {
         try {
             if (id == null || id <= 0) {
@@ -109,7 +109,7 @@ public class PostService {
         }
     }
 
-    @SuppressWarnings("checkstyle:MissingJavadocMethod")
+    /**update post.*/
     public Post updatePost(Long id, Post postDetails) {
         try {
             if (id == null || id <= 0) {
@@ -122,8 +122,13 @@ public class PostService {
             Post post = postRepository.findById(id)
                     .orElseThrow(() -> new BadRequestException("Post not found with ID: " + id));
 
-            if (postDetails.getTitle() != null) post.setTitle(postDetails.getTitle());
-            if (postDetails.getText() != null) post.setText(postDetails.getText());
+            if (postDetails.getTitle() != null) {
+                post.setTitle(postDetails.getTitle());
+            }
+
+            if (postDetails.getText() != null) {
+                post.setText(postDetails.getText());
+            }
 
             Post updatedPost = postRepository.save(post);
             cache.put(getPostCacheKey(id), updatedPost);
@@ -141,7 +146,7 @@ public class PostService {
         }
     }
 
-    @SuppressWarnings("checkstyle:MissingJavadocMethod")
+    /**delete post method.*/
     public void deletePost(Long id) {
         try {
             if (id == null || id <= 0) {
@@ -170,7 +175,7 @@ public class PostService {
         }
     }
 
-    @SuppressWarnings("checkstyle:MissingJavadocMethod")
+    /**delete post method.*/
     public List<Post> getPostsByUsername(String username) {
         try {
             if (username == null || username.isEmpty()) {
