@@ -2,17 +2,13 @@ package com.example.postproject.services;
 
 import org.springframework.stereotype.Service;
 
-/**
- * Синхронизированный счетчик запросов к сервису
- */
+/**requestCounter class.*/
 @Service
 public class RequestCounter {
     private int count = 0;
     private final Object lock = new Object(); // Объект для синхронизации
 
-    /**
-     * Увеличивает счетчик на 1 и возвращает новое значение
-     */
+  /**increment.*/
     public int increment() {
         synchronized (lock) {
             count++;
@@ -20,18 +16,14 @@ public class RequestCounter {
         }
     }
 
-    /**
-     * Возвращает текущее значение счетчика
-     */
+   /**get count method.*/
     public int getCount() {
         synchronized (lock) {
             return count;
         }
     }
 
-    /**
-     * Сбрасывает счетчик в 0
-     */
+   /**reset counter.*/
     public void reset() {
         synchronized (lock) {
             count = 0;
