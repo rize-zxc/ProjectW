@@ -175,6 +175,45 @@ public class PostService {
         }
     }
 
+    /**
+     * Bulk create posts method.
+     */
+    public List<Post> bulkCreatePosts(List<Post> posts, User user) {
+        try {
+            if (posts == null || posts.isEmpty()) {
+                throw new BadRequestException("Posts list cannot be null or empty");
+            }
+            if (user == null) {
+                throw new BadRequestException("User cannot be null");
+            }
+
+            // Validate all posts before processing
+            posts.forEach(post -> {
+                if (post.getTitle() == null || post.getTitle().isEmpty()) {
+                    throw new BadRequestException("Post title cannot be empty");
+                }
+                if (post.getText() == null || post.getText().isEmpty()) {
+                    throw new BadRequestException("Post text cannot be empty");
+                }
+                post.setUser(user);
+            });
+
+            List<Post> createdPosts = posts.stream()
+                    .map(postRepository::save)
+                    .toList();
+
+            cache.remove(getUserPostsCacheKey(user.getUsername()));
+            logger.info("Bulk created {} posts for user: {}", createdPosts.size(), user.getUsername());
+            return createdPosts;
+        } catch (BadRequestException e) {
+            logger.warn("Validation error in bulkCreatePosts: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Failed to bulk create posts: {}", e.getMessage(), e);
+            throw new InternalServerErrorException("Failed to bulk create posts");
+        }
+    }
+
     /**delete post method.*/
     public List<Post> getPostsByUsername(String username) {
         try {

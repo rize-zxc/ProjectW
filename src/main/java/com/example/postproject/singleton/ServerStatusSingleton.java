@@ -9,6 +9,7 @@ public class ServerStatusSingleton {
     private ServerStatusSingleton() {
 
     }
+
     /**getInstance method.*/
     public static ServerStatus getInstance() {
         if (instance == null) {

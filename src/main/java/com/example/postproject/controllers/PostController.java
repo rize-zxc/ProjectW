@@ -134,6 +134,31 @@ public class PostController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * Bulk create posts.
+     */
+    @Operation(summary = "Создать несколько постов", description = "Создает несколько постов для указанного пользователя")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Посты успешно созданы",
+                    content = @Content(schema = @Schema(implementation = Post.class))),
+            @ApiResponse(responseCode = "400", description = "Неверные данные постов"),
+            @ApiResponse(responseCode = "404", description = "Пользователь не найден"),
+            @ApiResponse(responseCode = "503", description = "Сервис временно недоступен")
+    })
+    @PostMapping("/bulk-create")
+    public ResponseEntity<?> bulkCreatePosts(
+            @Parameter(description = "Список постов", required = true)
+            @RequestBody List<Post> posts,
+            @Parameter(description = "ID пользователя", required = true)
+            @RequestParam Long userId) {
+        if (!statusService.isServerAvailable()) {
+            return ResponseEntity.status(503).body("Сервис временно недоступен. Пожалуйста, попробуйте позже.");
+        }
+        User user = userService.getUserById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+        return ResponseEntity.ok(postService.bulkCreatePosts(posts, user));
+    }
+
     /**get post by username.*/
     @Operation(summary = "Получить посты пользователя", description = "Возвращает все посты указанного пользователя")
     @ApiResponses(value = {
