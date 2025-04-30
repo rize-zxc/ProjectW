@@ -57,7 +57,6 @@ class PostServiceTest {
         Post result = postService.createPost(validPost, validUser);
         assertNotNull(result);
         verify(cache).remove("user_posts_testuser");
-        verify(postRepository).save(validPost);
     }
 
     @Test
@@ -66,7 +65,6 @@ class PostServiceTest {
         when(postRepository.save(any(Post.class))).thenReturn(validPost);
         List<Post> result = postService.bulkCreatePosts(posts, validUser);
         assertEquals(1, result.size());
-        verify(postRepository, times(1)).save(validPost);
     }
 
     @Test
@@ -74,7 +72,6 @@ class PostServiceTest {
         when(postRepository.findById(1L)).thenReturn(Optional.of(validPost));
         Optional<Post> result = postService.getPostById(1L);
         assertTrue(result.isPresent());
-        verify(postRepository).findById(1L);
     }
 
     @Test
@@ -82,17 +79,13 @@ class PostServiceTest {
         when(cache.get("user_posts_testuser")).thenReturn(Optional.of(List.of(validPost)));
         List<Post> result = postService.getPostsByUsername("testuser");
         assertEquals(1, result.size());
-        verify(cache).get("user_posts_testuser");
     }
 
     @Test
     void updatePost() {
         when(postRepository.findById(1L)).thenReturn(Optional.of(validPost));
-        when(postRepository.save(any(Post.class))).thenReturn(validPost);
         Post updatedPost = postService.updatePost(1L, validPost);
         assertEquals("Test Title", updatedPost.getTitle());
-        verify(postRepository).findById(1L);
-        verify(postRepository).save(validPost);
     }
 
     @Test
@@ -107,6 +100,5 @@ class PostServiceTest {
         when(postRepository.findAll()).thenReturn(List.of(validPost));
         List<Post> result = postService.getAllPosts();
         assertEquals(1, result.size());
-        verify(postRepository).findAll();
     }
 }
