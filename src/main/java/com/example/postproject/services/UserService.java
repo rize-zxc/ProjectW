@@ -5,6 +5,7 @@ import com.example.postproject.exceptions.BadRequestException;
 import com.example.postproject.exceptions.InternalServerErrorException;
 import com.example.postproject.models.User;
 import com.example.postproject.repository.UserRepository;
+import com.example.postproject.services.RequestCounter;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -19,11 +20,13 @@ public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
     private final UserRepository userRepository;
     private final SimpleCache cache;
+    private final RequestCounter requestCounter;
 
     /**cache for User.*/
-    public UserService(UserRepository userRepository, SimpleCache cache) {
+    public UserService(UserRepository userRepository, SimpleCache cache, RequestCounter requestCounter) {
         this.userRepository = userRepository;
         this.cache = cache;
+        this.requestCounter = requestCounter;
     }
 
     private String getUserCacheKey(Long id) {
@@ -36,6 +39,7 @@ public class UserService {
 
     /**createUser method.*/
     public User createUser(User user) {
+        int requestNumber = requestCounter.increment();
         try {
 
             if (user == null) {
@@ -66,6 +70,7 @@ public class UserService {
 
     /**getAllUsers method.*/
     public List<User> getAllUsers() {
+        int requestNumber = requestCounter.increment();
         try {
             String cacheKey = getAllUsersCacheKey();
             Optional<Object> cachedUsers = cache.get(cacheKey);
@@ -87,6 +92,7 @@ public class UserService {
 
     /**getUserById method.*/
     public Optional<User> getUserById(Long id) {
+        int requestNumber = requestCounter.increment();
         try {
             if (id == null || id <= 0) {
                 throw new BadRequestException("Invalid user ID");
@@ -119,6 +125,7 @@ public class UserService {
 
     /**updateUser method.*/
     public User updateUser(Long id, User userDetails) {
+        int requestNumber = requestCounter.increment();
         try {
             if (id == null || id <= 0) {
                 throw new BadRequestException("Invalid user ID");
@@ -157,6 +164,7 @@ public class UserService {
 
     /**deleteUser method.*/
     public void deleteUser(Long id) {
+        int requestNumber = requestCounter.increment();
         try {
             if (id == null || id <= 0) {
                 throw new BadRequestException("Invalid user ID");

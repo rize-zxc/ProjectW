@@ -6,6 +6,7 @@ import com.example.postproject.exceptions.InternalServerErrorException;
 import com.example.postproject.models.Post;
 import com.example.postproject.models.User;
 import com.example.postproject.repository.PostRepository;
+import com.example.postproject.services.RequestCounter;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -20,11 +21,13 @@ public class PostService {
     private static final Logger logger = LoggerFactory.getLogger(PostService.class);
     private final PostRepository postRepository;
     private final SimpleCache cache;
+    private final RequestCounter requestCounter;
 
     /**cache.*/
-    public PostService(PostRepository postRepository, SimpleCache cache) {
+    public PostService(PostRepository postRepository, SimpleCache cache, RequestCounter requestCounter) {
         this.postRepository = postRepository;
         this.cache = cache;
+        this.requestCounter = requestCounter;
     }
 
     private String getPostCacheKey(Long id) {
@@ -37,6 +40,7 @@ public class PostService {
 
     /**class for createPost.*/
     public Post createPost(Post post, User user) {
+        int requestNumber = requestCounter.increment();
         try {
             if (post == null) {
                 throw new BadRequestException("Post data cannot be null");
@@ -67,6 +71,7 @@ public class PostService {
 
     /**getAllPosts.*/
     public List<Post> getAllPosts() {
+        int requestNumber = requestCounter.increment();
         try {
             List<Post> posts = postRepository.findAll();
             logger.info("Retrieved {} posts from database", posts.size());
@@ -79,6 +84,7 @@ public class PostService {
 
     /**get post by ID.*/
     public Optional<Post> getPostById(Long id) {
+        int requestNumber = requestCounter.increment();
         try {
             if (id == null || id <= 0) {
                 throw new BadRequestException("Invalid post ID");
@@ -111,6 +117,7 @@ public class PostService {
 
     /**update post.*/
     public Post updatePost(Long id, Post postDetails) {
+        int requestNumber = requestCounter.increment();
         try {
             if (id == null || id <= 0) {
                 throw new BadRequestException("Invalid post ID");
@@ -148,6 +155,7 @@ public class PostService {
 
     /**delete post method.*/
     public void deletePost(Long id) {
+        int requestNumber = requestCounter.increment();
         try {
             if (id == null || id <= 0) {
                 throw new BadRequestException("Invalid post ID");
@@ -179,6 +187,7 @@ public class PostService {
      * Bulk create posts method.
      */
     public List<Post> bulkCreatePosts(List<Post> posts, User user) {
+        int requestNumber = requestCounter.increment();
         try {
             if (posts == null || posts.isEmpty()) {
                 throw new BadRequestException("Posts list cannot be null or empty");
@@ -216,6 +225,7 @@ public class PostService {
 
     /**delete post method.*/
     public List<Post> getPostsByUsername(String username) {
+        int requestNumber = requestCounter.increment();
         try {
             if (username == null || username.isEmpty()) {
                 throw new BadRequestException("Username cannot be empty");
