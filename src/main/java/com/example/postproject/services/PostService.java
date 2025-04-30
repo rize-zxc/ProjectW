@@ -183,9 +183,7 @@ public class PostService {
         }
     }
 
-    /**
-     * Bulk create posts method.
-     */
+    /**bulk-create posts.*/
     public List<Post> bulkCreatePosts(List<Post> posts, User user) {
         int requestNumber = requestCounter.increment();
         try {
