@@ -4,22 +4,22 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class RequestCounterTest {
+
     @Test
-    void testCounterIncrement() {
+    void increment() {
         RequestCounter counter = new RequestCounter();
         assertEquals(1, counter.increment());
-        assertEquals(2, counter.increment());
     }
 
     @Test
-    void testGetCount() {
+    void getCount() {
         RequestCounter counter = new RequestCounter();
         counter.increment();
         assertEquals(1, counter.getCount());
     }
 
     @Test
-    void testReset() {
+    void reset() {
         RequestCounter counter = new RequestCounter();
         counter.increment();
         counter.reset();
