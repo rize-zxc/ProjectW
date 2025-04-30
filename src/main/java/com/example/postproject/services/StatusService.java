@@ -1,30 +1,30 @@
 package com.example.postproject.services;
 
+import com.example.postproject.services.RequestCounter;
 import com.example.postproject.models.ServerStatus;
 import com.example.postproject.singleton.ServerStatusSingleton;
+import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.stereotype.Service;
 
-
-
-/**class of StatusService.*/
 @Service
 public class StatusService {
-
     private final ServerStatus serverStatus;
+    private final RequestCounter requestCounter;
 
-    /**constructor of StatusService.*/
-    public StatusService() {
-        this.serverStatus = ServerStatusSingleton.getInstance(); // получаем синглтон
+    public StatusService(RequestCounter requestCounter) {
+        this.serverStatus = ServerStatusSingleton.getInstance();
+        this.requestCounter = requestCounter;
     }
 
     public boolean isServerAvailable() {
+        requestCounter.increment();
         return serverStatus.isAvailable();
     }
 
-    /**updateGetStatus method.*/
     public Map<String, String> updateAndGetStatus(String status) {
+        requestCounter.increment();
+
         if (status != null) {
             if ("available".equalsIgnoreCase(status)) {
                 serverStatus.setAvailable(true);
@@ -34,13 +34,11 @@ public class StatusService {
         }
 
         Map<String, String> response = new HashMap<>();
-        if (serverStatus.isAvailable()) {
-            response.put("status", "available");
-            response.put("message", "Сервис работает в штатном режиме.");
-        } else {
-            response.put("status", "unavailable");
-            response.put("message", "Сервис временно недоступен. Пожалуйста, попробуйте позже.");
-        }
+        response.put("status", serverStatus.isAvailable() ? "available" : "unavailable");
+        response.put("message", serverStatus.isAvailable()
+                ? "Сервис работает в штатном режиме"
+                : "Сервис временно недоступен");
+        response.put("totalRequests", String.valueOf(requestCounter.getCount()));
 
         return response;
     }
